@@ -217,6 +217,45 @@ a:hover {
   --bs-btn-color: #0f766e;
 }
 
+/* Checkout – card-based payment method picker */
+.checkout-method-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.7rem 0.4rem;
+  border: 2px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+  min-height: 4.5rem;
+  width: 100%;
+}
+
+.checkout-method-card:hover {
+  border-color: #1EE65C;
+  background: rgba(30, 230, 92, 0.06);
+}
+
+.checkout-method-card.is-active {
+  border-color: #1EE65C;
+  background: rgba(30, 230, 92, 0.1);
+  color: #15803d;
+  box-shadow: 0 0 0 4px rgba(30, 230, 92, 0.15);
+}
+
+.checkout-method-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+}
+
 .card,
 .table,
 .form-control,
@@ -527,15 +566,13 @@ a:hover {
 }
 
 .home-page-dark {
-  background: radial-gradient(
-    120% 90% at 50% 0%,
-    rgba(0, 0, 0, 0.62) 0%,
-    rgba(0, 0, 0, 0.54) 55%,
-    rgba(0, 0, 0, 0.48) 100%
-  );
+  background: radial-gradient(120% 90% at 50% 0%,
+      rgba(0, 0, 0, 0.62) 0%,
+      rgba(0, 0, 0, 0.54) 55%,
+      rgba(0, 0, 0, 0.48) 100%);
 }
 
-.home-page-dark > section > h2,
+.home-page-dark>section>h2,
 .home-page-dark .section-title-dark {
   color: #e5edf9;
 }
