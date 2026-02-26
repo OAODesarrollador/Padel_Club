@@ -598,8 +598,76 @@ a:hover {
   padding: 0.2rem 0.55rem;
 }
 
+.admin-global-nav__measure-wrap {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+}
+
+.admin-global-nav__measure {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
 .admin-global-nav__backdrop {
   display: none;
+}
+
+.admin-global-nav.is-compact .admin-global-nav__toggle {
+  display: inline-flex;
+}
+
+.admin-global-nav.is-compact .admin-global-nav__menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0.4rem;
+  display: flex;
+  width: min(84vw, 320px);
+  max-height: calc(100dvh - 88px);
+  overflow-y: auto;
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 0.9rem;
+  padding: 0.35rem;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--border);
+  box-shadow: 0 14px 28px rgba(30, 58, 138, 0.16);
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.2s ease;
+}
+
+.admin-global-nav.is-compact .admin-global-nav__menu.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.admin-global-nav.is-compact .admin-global-nav__menu .app-nav-link {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 2.1rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.95rem;
+}
+
+.admin-global-nav.is-compact .admin-global-nav__backdrop {
+  position: fixed;
+  inset: 56px 0 0 0;
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.18);
+  transition: opacity 0.16s ease;
+}
+
+.admin-global-nav.is-compact .admin-global-nav__backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .admin-page-shell {
@@ -769,71 +837,7 @@ a:hover {
     height: 56px;
     gap: 0.35rem;
     padding: 0 0.4rem;
-    justify-content: space-between;
     position: relative;
-  }
-
-  .admin-global-nav__title {
-    display: block;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 1rem;
-  }
-
-  .admin-global-nav__toggle {
-    display: inline-flex;
-  }
-
-  .admin-global-nav .app-nav-wrap.admin-global-nav__menu {
-    position: absolute;
-    top: calc(100% + 0.35rem);
-    right: 0.4rem;
-    display: flex;
-    width: min(84vw, 320px);
-    max-height: calc(100dvh - 88px);
-    overflow-y: auto;
-    flex-direction: column;
-    align-items: stretch;
-    border-radius: 0.9rem;
-    padding: 0.35rem;
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid var(--border);
-    box-shadow: 0 14px 28px rgba(30, 58, 138, 0.16);
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-    transform-origin: top right;
-    pointer-events: none;
-    transition: opacity 0.18s ease, transform 0.2s ease;
-  }
-
-  .admin-global-nav .app-nav-wrap.admin-global-nav__menu.is-open {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
-  }
-
-  .admin-global-nav .app-nav-link {
-    width: 100%;
-    justify-content: flex-start;
-    min-height: 2.1rem;
-    padding: 0.45rem 0.65rem;
-    font-size: 0.95rem;
-  }
-
-  .admin-global-nav__backdrop {
-    position: fixed;
-    inset: 56px 0 0 0;
-    display: block;
-    opacity: 0;
-    pointer-events: none;
-    background: rgba(0, 0, 0, 0.18);
-    transition: opacity 0.16s ease;
-  }
-
-  .admin-global-nav__backdrop.is-open {
-    opacity: 1;
-    pointer-events: auto;
   }
 
   .admin-page-shell {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const items = [
   { href: "/admin", label: "Panel" },
@@ -16,11 +16,37 @@ const items = [
 export function AdminGlobalNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [compact, setCompact] = useState(false);
   const navRef = useRef(null);
+  const titleRef = useRef(null);
+  const measureRef = useRef(null);
 
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!compact) setOpen(false);
+  }, [compact]);
+
+  useLayoutEffect(() => {
+    function recalc() {
+      if (!navRef.current || !titleRef.current || !measureRef.current) return;
+      const available = navRef.current.clientWidth - titleRef.current.clientWidth - 28;
+      const needed = measureRef.current.scrollWidth;
+      setCompact(needed > available);
+    }
+
+    recalc();
+    const ro = new ResizeObserver(recalc);
+    if (navRef.current) ro.observe(navRef.current);
+    if (titleRef.current) ro.observe(titleRef.current);
+    window.addEventListener("resize", recalc);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", recalc);
+    };
+  }, []);
 
   useEffect(() => {
     function onPointerDown(event) {
@@ -47,17 +73,27 @@ export function AdminGlobalNav() {
   }, [open]);
 
   return (
-    <header className="admin-global-nav">
+    <header className={`admin-global-nav ${compact ? "is-compact" : ""}`}>
       <div className="admin-global-nav__inner" ref={navRef}>
-        <p className="admin-global-nav__title">
+        <p className="admin-global-nav__title" ref={titleRef}>
           <Image src="/images/logoPadel.png" alt="Logo Club Deportivo" width={30} height={30} className="admin-global-nav__logo" />
           <span>Administración</span>
         </p>
+        <div className="admin-global-nav__measure-wrap" aria-hidden="true">
+          <nav className="app-nav-wrap admin-global-nav__measure" ref={measureRef}>
+            {items.map((item) => (
+              <span key={`measure-${item.href}`} className="app-nav-link">
+                {item.label}
+              </span>
+            ))}
+          </nav>
+        </div>
         <button
           type="button"
           className="btn btn-outline-primary btn-sm admin-global-nav__toggle"
           aria-label="Abrir menú de administración"
           aria-expanded={open}
+          style={{ display: compact ? "inline-flex" : "none" }}
           onClick={() => setOpen((v) => !v)}
         >
           ☰
