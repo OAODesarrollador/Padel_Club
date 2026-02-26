@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { BottomNav, TopBar } from "@/components/ui/AppScaffold";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BottomNav } from "@/components/ui/AppScaffold";
 import { useFeedback } from "@/components/ui/FeedbackProvider";
 import { mapApiError } from "@/lib/clientFeedback";
 
@@ -80,6 +80,10 @@ function getSlotRange(day, hhmm) {
   return { start, end };
 }
 
+function slotKey(courtId, slot) {
+  return `${courtId}::${slot}`;
+}
+
 function overlaps(row, slotStart, slotEnd) {
   if (!row.start_at || !row.end_at) return false;
   const start = new Date(row.start_at);
@@ -99,6 +103,7 @@ export default function AdminReservasPage() {
   const [saving, setSaving] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [form, setForm] = useState(null);
+  const abortRef = useRef(null);
 
   const dayStart = useMemo(() => {
     const d = new Date(selectedDay);
@@ -112,31 +117,64 @@ export default function AdminReservasPage() {
     return d.toISOString();
   }, [selectedDay]);
 
-  async function load() {
-    setLoading(true);
+  async function loadCourts() {
+    try {
+      const response = await fetch("/api/admin/canchas", { cache: "no-store" });
+      const data = await response.json();
+      setCourts(data.rows || []);
+    } catch {
+      setCourts([]);
+    }
+  }
+
+  async function loadReservations({ signal, showLoader = true } = {}) {
+    if (showLoader) setLoading(true);
     try {
       const reservationsUrl = new URL("/api/admin/reservas", window.location.origin);
       reservationsUrl.searchParams.set("dateFrom", dayStart);
       reservationsUrl.searchParams.set("dateTo", dayEnd);
+      reservationsUrl.searchParams.set("view", "grid");
       if (sport) reservationsUrl.searchParams.set("sport", sport);
       if (status) reservationsUrl.searchParams.set("status", status);
 
-      const [reservationsRes, courtsRes] = await Promise.all([
-        fetch(reservationsUrl, { cache: "no-store" }),
-        fetch("/api/admin/canchas", { cache: "no-store" })
-      ]);
-      const reservationsData = await reservationsRes.json();
-      const courtsData = await courtsRes.json();
-      setRows(reservationsData.rows || []);
-      setCourts(courtsData.rows || []);
+      const response = await fetch(reservationsUrl, { cache: "no-store", signal });
+      const data = await response.json();
+      if (!signal?.aborted) {
+        setRows(data.rows || []);
+      }
+    } catch (error) {
+      if (error?.name !== "AbortError" && !signal?.aborted) {
+        setRows([]);
+      }
     } finally {
-      setLoading(false);
+      if (showLoader && !signal?.aborted) setLoading(false);
     }
   }
 
   useEffect(() => {
-    load();
+    loadCourts();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
+
+    const timer = setTimeout(() => {
+      loadReservations({ signal: controller.signal });
+    }, 220);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [dayStart, dayEnd, sport, status]);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   const visibleCourts = useMemo(() => {
     if (!sport) return courts;
@@ -150,9 +188,22 @@ export default function AdminReservasPage() {
     return { total: rows.length, pending, confirmed, canceled };
   }, [rows]);
 
+  const reservationsBySlot = useMemo(() => {
+    const map = new Map();
+    for (const row of rows) {
+      for (const slot of slots) {
+        const { start, end } = getSlotRange(selectedDay, slot);
+        if (overlaps(row, start, end)) {
+          const key = slotKey(row.court_id, slot);
+          if (!map.has(key)) map.set(key, row);
+        }
+      }
+    }
+    return map;
+  }, [rows, selectedDay]);
+
   function getSlotReservation(courtId, slot) {
-    const { start, end } = getSlotRange(selectedDay, slot);
-    return rows.find((row) => Number(row.court_id) === Number(courtId) && overlaps(row, start, end)) || null;
+    return reservationsBySlot.get(slotKey(courtId, slot)) || null;
   }
 
   function openModal(row) {
@@ -226,7 +277,8 @@ export default function AdminReservasPage() {
         solution: "La grilla se refrescó con el nuevo estado."
       });
       closeModal();
-      await load();
+      abortRef.current?.abort();
+      await loadReservations({ showLoader: false });
     } catch {
       feedback.showError({
         ...mapApiError({
@@ -266,7 +318,8 @@ export default function AdminReservasPage() {
         solution: "La celda quedó disponible en la grilla."
       });
       closeModal();
-      await load();
+      abortRef.current?.abort();
+      await loadReservations({ showLoader: false });
     } catch {
       feedback.showError({
         ...mapApiError({
@@ -281,10 +334,13 @@ export default function AdminReservasPage() {
   }
 
   return (
-    <div className="pb-24">
-      <TopBar title="Reservas" left={<span className="text-xl">☰</span>} right={<span className="text-xl">👤</span>} />
+    <div className="admin-page-content pb-24">
+      <section className="space-y-4 py-4">
+        <div className="surface-card p-4">
+          <h1 className="text-2xl font-black sm:text-3xl">Reservas</h1>
+          <p className="text-sm text-muted">Vista de agenda por cancha y horario para gestión rápida.</p>
+        </div>
 
-      <section className="space-y-4 p-4">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <div className="surface-card p-3">
             <p className="text-xs font-bold text-muted">TOTAL</p>
@@ -348,7 +404,7 @@ export default function AdminReservasPage() {
             <article key={court.id} className="surface-card p-4">
               <div className="mb-3 flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-black">{court.name}</h2>
+                  <h2 className="text-xl font-black sm:text-2xl">{court.name}</h2>
                   <p className="text-xs font-bold uppercase text-muted">{getSportLabel(court.sport)}</p>
                 </div>
               </div>
@@ -376,7 +432,7 @@ export default function AdminReservasPage() {
                       </p>
 
                       {isReserved ? (
-                        <div className="pointer-events-none absolute left-1/2 top-0 z-20 hidden w-56 -translate-x-1/2 -translate-y-[106%] rounded-xl border border-line bg-white p-2 text-xs text-slate-700 shadow-xl group-hover:block">
+                        <div className="pointer-events-none absolute left-1/2 top-0 z-20 hidden w-56 -translate-x-1/2 -translate-y-[106%] rounded-xl border border-line bg-white p-2 text-xs text-slate-700 shadow-xl md:group-hover:block">
                           <p className="font-bold">{reservation.customer_name || "Sin nombre"}</p>
                           <p>Estado: {getStatusLabel(reservation.status)}</p>
                           <p>Pago: {getPaymentStatusLabel(reservation.payment_status)}</p>
@@ -398,11 +454,11 @@ export default function AdminReservasPage() {
 
       {selectedReservation && form ? (
         <div className="fixed inset-0 z-50 grid place-content-center bg-black/45 px-4 py-6">
-          <div className="surface-card w-full max-w-2xl p-5">
+          <div className="surface-card w-full max-w-2xl max-h-[88vh] overflow-y-auto p-5">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase text-muted">Reserva #{selectedReservation.booking_code || selectedReservation.id}</p>
-                <h3 className="text-2xl font-black">{selectedReservation.court_name}</h3>
+                <h3 className="text-xl font-black sm:text-2xl">{selectedReservation.court_name}</h3>
               </div>
               <button type="button" className="btn btn-outline-primary btn-sm" onClick={closeModal}>Cerrar</button>
             </div>

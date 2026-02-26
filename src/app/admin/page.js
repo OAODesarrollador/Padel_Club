@@ -49,10 +49,10 @@ export default async function AdminIndexPage() {
   const name = String(staff?.name || "Staff");
 
   return (
-    <section className="mx-auto max-w-5xl space-y-5 p-4">
+    <section className="admin-page-content mx-auto w-full max-w-5xl space-y-4 py-4 sm:space-y-5 sm:py-5">
       <div className="surface-card p-4">
         <p className="text-xs font-bold uppercase tracking-wide text-muted">Panel de administración</p>
-        <h1 className="text-3xl font-black">Hola, {name}</h1>
+        <h1 className="text-2xl font-black sm:text-3xl">Hola, {name}</h1>
         <p className="text-sm text-muted">Rol activo: {role === "ADMIN" ? "Administrador" : "Secretario / Vendedor"}</p>
       </div>
 
@@ -76,7 +76,7 @@ export default async function AdminIndexPage() {
         })}
       </div>
 
-      <div className="pt-1">
+      <div className="pt-1 pb-1">
         <Link href="/api/admin/logout" className="btn btn-outline-primary">Cerrar sesión</Link>
       </div>
     </section>

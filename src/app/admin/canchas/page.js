@@ -198,14 +198,14 @@ export default function AdminCanchasPage() {
 
   return (
     <div className="admin-page-content">
-      <section className="space-y-4 p-4">
+      <section className="space-y-4 py-4">
         <div className="surface-card p-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-black">Canchas y Precios</h1>
+              <h1 className="text-2xl font-black sm:text-3xl">Canchas y Precios</h1>
               <p className="text-sm text-muted">Gestión de datos, tarifas y estado de las canchas.</p>
             </div>
-            <Button onClick={onStartCreate}>
+            <Button onClick={onStartCreate} className="w-full sm:w-auto">
               {showCreate ? "Cerrar" : "+ Nueva cancha"}
             </Button>
           </div>
@@ -266,7 +266,7 @@ export default function AdminCanchasPage() {
                 <p className="text-sm font-semibold">{form.name || "Nombre de cancha"}</p>
               </div>
             </div>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <Button className="w-full" onClick={editingId ? update : create} disabled={saving}>
                 {saving ? "Guardando..." : editingId ? "Guardar cambios" : "Guardar cancha"}
               </Button>
@@ -334,8 +334,8 @@ export default function AdminCanchasPage() {
       </section>
 
       {pendingDelete ? (
-        <div className="fixed inset-0 z-50 grid place-content-center bg-black/45 px-4">
-          <div className="surface-card w-full max-w-md p-5">
+        <div className="fixed inset-0 z-50 grid place-content-center bg-black/45 px-4 py-6">
+          <div className="surface-card w-full max-w-md max-h-[88vh] overflow-y-auto p-5">
             <p className="status-badge status-badge--pending mb-2">Confirmación requerida</p>
             <h3 className="text-2xl font-black">¿Eliminar cancha?</h3>
             <p className="mt-2 text-sm">
@@ -344,7 +344,7 @@ export default function AdminCanchasPage() {
             <p className="mt-2 text-xs text-muted">
               Si la cancha tiene reservas asociadas, el sistema bloqueará el borrado para proteger integridad.
             </p>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <Button variant="secondary" className="w-full" onClick={() => setPendingDelete(null)}>
                 Cancelar
               </Button>

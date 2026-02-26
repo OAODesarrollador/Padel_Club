@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 
 export async function listPublicEvents(clubId) {
   const rs = await db.execute({
-    sql: `SELECT id, title, sport, starts_at, spots_left, status, image_url
+    sql: `SELECT id, title, description, sport, starts_at, spots_left, status, image_url
           FROM events
           WHERE club_id = ? AND status = 'PUBLISHED'
           ORDER BY starts_at ASC`,

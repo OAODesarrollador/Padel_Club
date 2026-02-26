@@ -195,14 +195,14 @@ export default function AdminEventosPage() {
 
   return (
     <div className="admin-page-content">
-      <section className="space-y-4 p-4">
+      <section className="space-y-4 py-4">
         <div className="surface-card p-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-black">Eventos</h1>
+              <h1 className="text-2xl font-black sm:text-3xl">Eventos</h1>
               <p className="text-sm text-muted">Alta y gestión de eventos con imagen.</p>
             </div>
-            <Button onClick={onStartCreate}>
+            <Button onClick={onStartCreate} className="w-full sm:w-auto">
               {showCreate ? "Cerrar" : "+ Nuevo evento"}
             </Button>
           </div>
@@ -248,14 +248,16 @@ export default function AdminEventosPage() {
                 <textarea className="w-full rounded-xl border border-line px-3 py-2" rows={3} placeholder="Descripción" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </label>
               <div className="sm:col-span-2 flex items-center gap-3 rounded-xl border border-line bg-[#F8F9FC] p-2.5">
-                <img src={form.image_url || "/ui-screens/08-eventos.png"} alt="Vista previa evento" className="h-16 w-24 rounded-lg object-cover" />
+                <div className="flex h-20 w-28 items-center justify-center rounded-lg bg-white p-1 sm:h-24 sm:w-36">
+                  <img src={form.image_url || "/ui-screens/08-eventos.png"} alt="Vista previa evento" className="h-full w-full rounded object-contain" />
+                </div>
                 <div>
                   <p className="text-xs font-bold text-muted">Vista previa</p>
                   <p className="text-sm font-semibold">{form.title || "Título del evento"}</p>
                 </div>
               </div>
             </div>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <Button className="w-full" onClick={editingId ? update : create} disabled={saving}>
                 {saving ? "Guardando..." : editingId ? "Guardar cambios" : "Guardar evento"}
               </Button>
@@ -280,7 +282,9 @@ export default function AdminEventosPage() {
           {rows.map((row) => (
             <article key={row.id} className="rounded-2xl border border-line bg-white p-3">
               <div className="flex items-start gap-3">
-                <img src={row.image_url || "/ui-screens/08-eventos.png"} alt={row.title} className="h-16 w-24 rounded-lg object-cover" />
+                <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-lg bg-[#F8F9FC] p-1 sm:h-24 sm:w-36">
+                  <img src={row.image_url || "/ui-screens/08-eventos.png"} alt={row.title} className="h-full w-full rounded object-contain" />
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-2xl font-black leading-tight">{row.title}</p>
                   <p className="text-xs text-muted">{new Date(row.starts_at).toLocaleString("es-AR")}</p>
@@ -307,14 +311,14 @@ export default function AdminEventosPage() {
       </section>
 
       {pendingDelete ? (
-        <div className="fixed inset-0 z-50 grid place-content-center bg-black/45 px-4">
-          <div className="surface-card w-full max-w-md p-5">
+        <div className="fixed inset-0 z-50 grid place-content-center bg-black/45 px-4 py-6">
+          <div className="surface-card w-full max-w-md max-h-[88vh] overflow-y-auto p-5">
             <p className="status-badge status-badge--pending mb-2">Confirmación requerida</p>
             <h3 className="text-2xl font-black">¿Eliminar evento?</h3>
             <p className="mt-2 text-sm">
               Vas a eliminar <span className="font-bold">{pendingDelete.title}</span>.
             </p>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <Button variant="secondary" className="w-full" onClick={() => setPendingDelete(null)}>
                 Cancelar
               </Button>

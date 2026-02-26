@@ -19,13 +19,16 @@ export default function NosotrosPage() {
           <h2 className="mb-3 text-xl font-black">Galería</h2>
           <div className="grid grid-cols-2 gap-2">
             <div className="relative col-span-1 h-36 overflow-hidden rounded-2xl">
-              <Image src="/ui-screens/01-home.png" alt="Galería 1" fill className="object-cover" />
+              <Image src="/ui-screens/padelpanoramica.jpg" alt="Galería 1" fill className="object-cover" />
             </div>
             <div className="relative col-span-1 h-36 overflow-hidden rounded-2xl">
-              <Image src="/ui-screens/08-eventos.png" alt="Galería 2" fill className="object-cover" />
+              <Image src="/ui-screens/pista-padel-cubierta.avif" alt="Galería 2" fill className="object-cover" />
             </div>
             <div className="relative col-span-2 h-36 overflow-hidden rounded-2xl">
-              <Image src="/ui-screens/07-nosotros.png" alt="Galería 3" fill className="object-cover" />
+              <Image src="/ui-screens/futbol5.webp" alt="Galería 3" fill className="object-cover" />
+            </div>
+            <div className="relative col-span-2 h-36 overflow-hidden rounded-2xl">
+              <Image src="/ui-screens/canchatenis.jpg" alt="Galería 3" fill className="object-cover" />
             </div>
           </div>
         </Card>

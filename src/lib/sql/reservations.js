@@ -48,7 +48,12 @@ export async function getReservationByManageToken(token) {
 
 export async function listReservations(clubId, filters = {}) {
   const args = [clubId];
-  let sql = `SELECT r.*, c.name as court_name, c.sport
+  const selectClause = filters.view === "grid"
+    ? `SELECT r.id, r.club_id, r.court_id, r.booking_code, r.status, r.payment_status,
+              r.start_at, r.end_at, r.customer_name, r.customer_phone, r.customer_email, r.notes,
+              r.total_amount, c.name as court_name, c.sport`
+    : `SELECT r.*, c.name as court_name, c.sport`;
+  let sql = `${selectClause}
              FROM reservations r
              JOIN courts c ON c.id = r.court_id
              WHERE r.club_id = ?`;

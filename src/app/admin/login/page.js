@@ -46,14 +46,16 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="mx-auto mt-16 max-w-md rounded-3xl border border-line bg-white p-6 shadow-soft">
-      <h1 className="mb-2 text-4xl font-black">Panel de Personal</h1>
-      <p className="mb-4 text-sm text-muted">Acceso administrador/secretario</p>
-      <form className="space-y-3" onSubmit={login}>
-        <input className="w-full rounded-xl border border-line px-3 py-2" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Correo electrónico" />
-        <input className="w-full rounded-xl border border-line px-3 py-2" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña" />
-        <Button className="w-full" type="submit">Ingresar</Button>
-      </form>
+    <div className="admin-page-content">
+      <div className="mx-auto mt-6 w-full max-w-md rounded-3xl border border-line bg-white p-4 shadow-soft sm:mt-10 sm:p-6">
+        <h1 className="mb-2 text-3xl font-black sm:text-4xl">Panel de Personal</h1>
+        <p className="mb-4 text-sm text-muted">Acceso administrador/secretario</p>
+        <form className="space-y-3" onSubmit={login}>
+          <input className="w-full rounded-xl border border-line px-3 py-2" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Correo electrónico" />
+          <input className="w-full rounded-xl border border-line px-3 py-2" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña" />
+          <Button className="w-full" type="submit">Ingresar</Button>
+        </form>
+      </div>
     </div>
   );
 }

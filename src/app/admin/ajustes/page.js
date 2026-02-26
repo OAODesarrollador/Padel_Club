@@ -111,9 +111,9 @@ export default function AdminAjustesPage() {
 
   return (
     <div className="admin-page-content">
-      <section className="space-y-4 p-4">
+      <section className="space-y-4 py-4">
         <div className="surface-card p-4">
-          <h1 className="text-3xl font-black">Ajustes</h1>
+          <h1 className="text-2xl font-black sm:text-3xl">Ajustes</h1>
           <p className="text-sm text-muted">Configuración general del club, transferencias y reglas operativas.</p>
         </div>
 

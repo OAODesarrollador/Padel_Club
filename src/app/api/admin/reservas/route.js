@@ -24,7 +24,8 @@ export async function GET(request) {
     dateFrom: searchParams.get("dateFrom") || undefined,
     dateTo: searchParams.get("dateTo") || undefined,
     status: searchParams.get("status") || undefined,
-    sport: searchParams.get("sport") || undefined
+    sport: searchParams.get("sport") || undefined,
+    view: searchParams.get("view") || undefined
   });
   return NextResponse.json({ ok: true, rows });
 }
