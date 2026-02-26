@@ -53,7 +53,26 @@ export async function POST(request) {
 
   if (paymentStatus === "PAID") {
     await db.execute({
-      sql: "UPDATE reservations SET payment_status = 'PAID', status = 'CONFIRMED', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      sql: `UPDATE reservations
+            SET payment_status = 'PAID',
+                status = 'CONFIRMED',
+                expires_at = NULL,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+              AND status IN ('HOLD','CONFIRMED')`,
+      args: [reservation.id]
+    });
+  }
+
+  if (paymentStatus === "REJECTED") {
+    await db.execute({
+      sql: `UPDATE reservations
+            SET payment_status = 'PAYMENT_REJECTED',
+                status = CASE WHEN status = 'HOLD' THEN 'CANCELED' ELSE status END,
+                cancel_reason = CASE WHEN status = 'HOLD' THEN 'PAYMENT_REJECTED' ELSE cancel_reason END,
+                canceled_at = CASE WHEN status = 'HOLD' THEN CURRENT_TIMESTAMP ELSE canceled_at END,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?`,
       args: [reservation.id]
     });
   }

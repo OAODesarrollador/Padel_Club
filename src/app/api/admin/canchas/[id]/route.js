@@ -22,6 +22,7 @@ export async function PATCH(request, { params }) {
   const parsed = schema.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   const row = await updateCourt(Number(id), parsed.data);
+  if (!row) return NextResponse.json({ error: "Cancha no encontrada" }, { status: 404 });
   return NextResponse.json({ ok: true, row });
 }
 
@@ -29,6 +30,18 @@ export async function DELETE(request, { params }) {
   const { id } = await params;
   const auth = await requireStaff(request, ["ADMIN"]);
   if (auth.error) return auth.error;
-  await deleteCourt(Number(id));
-  return NextResponse.json({ ok: true });
+  try {
+    const deleted = await deleteCourt(Number(id));
+    if (!deleted) return NextResponse.json({ error: "Cancha no encontrada" }, { status: 404 });
+    return NextResponse.json({ ok: true, deleted });
+  } catch (error) {
+    const message = String(error?.message || "").toLowerCase();
+    if (message.includes("foreign key")) {
+      return NextResponse.json(
+        { error: "No se puede eliminar: la cancha tiene reservas o relaciones asociadas." },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ error: "No se pudo eliminar la cancha." }, { status: 500 });
+  }
 }

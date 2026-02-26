@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS clubs (
   transfer_cbu TEXT,
   transfer_holder TEXT,
   transfer_bank TEXT,
+  hold_minutes INTEGER NOT NULL DEFAULT 7,
+  cancel_hours_before INTEGER NOT NULL DEFAULT 2,
+  reschedule_limit INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

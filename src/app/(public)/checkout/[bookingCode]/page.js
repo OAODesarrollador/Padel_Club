@@ -93,22 +93,20 @@ export default function CheckoutPage({ params }) {
       .then((data) => setReservation(data.reservation || null));
   }, [bookingCode]);
 
+  // Mercado Pago Modal trigger logic
   useEffect(() => {
     if (!mpSession || !window.MercadoPago) return;
-    const bricks = new window.MercadoPago(mpSession.public_key, { locale: "es-AR" }).bricks();
-    bricks
-      .create("wallet", "mp-brick-container", {
-        initialization: { preferenceId: mpSession.preference_id },
-        customization: { texts: { valueProp: "smart_option" } },
-        callbacks: {
-          onError: () => {
-            if (mpSession.init_point) window.location.href = mpSession.init_point;
-          }
-        }
-      })
-      .catch(() => {
-        if (mpSession.init_point) window.location.href = mpSession.init_point;
-      });
+
+    // Initialize MP
+    const mp = new window.MercadoPago(mpSession.public_key, { locale: "es-AR" });
+
+    // Open Checkout Pro in Modal
+    mp.checkout({
+      preference: {
+        id: mpSession.preference_id
+      },
+      autoOpen: true
+    });
   }, [mpSession]);
 
   /* Helpers de formato de fecha */
@@ -299,13 +297,10 @@ export default function CheckoutPage({ params }) {
           </div>
 
           {/* Detalles según método */}
-          {method === "mp" && !mpSession && (
-            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
-              El botón de MercadoPago aparecerá al confirmar.
-            </div>
-          )}
           {method === "mp" && mpSession && (
-            <div id="mp-brick-container" className="rounded-2xl border border-line p-3" />
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 animate-pulse">
+              Abriendo ventana de pago seguro...
+            </div>
           )}
           {method === "transfer" && (
             <div className="space-y-1.5 rounded-2xl border border-indigo-200 bg-indigo-50 p-2.5">

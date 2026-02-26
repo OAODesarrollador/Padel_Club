@@ -63,8 +63,9 @@ export async function updateEvent(id, payload) {
 }
 
 export async function deleteEvent(id) {
-  await db.execute({
-    sql: "DELETE FROM events WHERE id = ?",
+  const rs = await db.execute({
+    sql: "DELETE FROM events WHERE id = ? RETURNING id",
     args: [id]
   });
+  return rs.rows?.[0] || null;
 }

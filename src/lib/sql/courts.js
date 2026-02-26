@@ -75,8 +75,9 @@ export async function updateCourt(id, payload) {
 }
 
 export async function deleteCourt(id) {
-  await db.execute({
-    sql: "DELETE FROM courts WHERE id = ?",
+  const rs = await db.execute({
+    sql: "DELETE FROM courts WHERE id = ? RETURNING id",
     args: [id]
   });
+  return rs.rows?.[0] || null;
 }

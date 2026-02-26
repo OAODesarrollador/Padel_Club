@@ -199,31 +199,38 @@ export async function confirmReservation(input) {
     }
 
     const method = mapPaymentUiToMethod(input.payment_ui_method);
+    const isMpFlow = method === "CARD_MP" || method === "WALLET_MP";
+    const nextStatus = isMpFlow ? "HOLD" : "CONFIRMED";
+
     let paymentStatus = "PAID";
     if (method === "CASH") paymentStatus = "PENDING_CASH";
     if (method === "TRANSFER_EXTERNAL") paymentStatus = "PENDING_TRANSFER_EXTERNAL";
-    if (method === "CARD_MP" || method === "WALLET_MP") paymentStatus = "PAYMENT_PENDING";
+    if (isMpFlow) paymentStatus = "PAYMENT_PENDING";
+
+    const nextExpiresAt = isMpFlow ? addMinutes(new Date().toISOString(), 15) : null;
 
     const result = await trx.execute({
       sql: `UPDATE reservations
-            SET status = 'CONFIRMED',
+            SET status = ?,
                 payment_method = ?,
                 payment_status = ?,
                 customer_name = ?,
                 customer_phone = ?,
                 customer_email = ?,
                 notes = ?,
-                expires_at = NULL,
+                expires_at = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
             RETURNING *`,
       args: [
+        nextStatus,
         method,
         paymentStatus,
         input.customer_name,
         input.customer_phone,
         input.customer_email,
         input.notes || "",
+        nextExpiresAt,
         row.id
       ]
     });

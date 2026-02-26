@@ -21,6 +21,7 @@ export async function PATCH(request, { params }) {
   const parsed = schema.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   const row = await updateEvent(Number(id), parsed.data);
+  if (!row) return NextResponse.json({ error: "Evento no encontrado" }, { status: 404 });
   return NextResponse.json({ ok: true, row });
 }
 
@@ -28,6 +29,11 @@ export async function DELETE(request, { params }) {
   const { id } = await params;
   const auth = await requireStaff(request, ["ADMIN"]);
   if (auth.error) return auth.error;
-  await deleteEvent(Number(id));
-  return NextResponse.json({ ok: true });
+  try {
+    const deleted = await deleteEvent(Number(id));
+    if (!deleted) return NextResponse.json({ error: "Evento no encontrado" }, { status: 404 });
+    return NextResponse.json({ ok: true, deleted });
+  } catch {
+    return NextResponse.json({ error: "No se pudo eliminar el evento." }, { status: 500 });
+  }
 }

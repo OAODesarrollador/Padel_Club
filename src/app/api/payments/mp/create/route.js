@@ -9,6 +9,26 @@ const schema = z.object({
   ui_method: z.enum(["mp"])
 });
 
+function normalizeAbsoluteUrl(value) {
+  if (!value) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const url = new URL(withProtocol);
+    return url.origin.replace(/\/$/, "");
+  } catch {
+    return null;
+  }
+}
+
+function resolveSiteUrl(request) {
+  const byRequest = normalizeAbsoluteUrl(new URL(request.url).origin);
+  const byPublicEnv = normalizeAbsoluteUrl(process.env.NEXT_PUBLIC_APP_URL);
+  const byVercelEnv = normalizeAbsoluteUrl(process.env.VERCEL_URL);
+  return byPublicEnv || byVercelEnv || byRequest || "http://localhost:3000";
+}
+
 export async function POST(request) {
   const payload = await request.json();
   const parsed = schema.safeParse(payload);
@@ -16,9 +36,17 @@ export async function POST(request) {
 
   const reservation = await getReservationByCode(parsed.data.booking_code);
   if (!reservation) return NextResponse.json({ error: "Reserva no encontrada" }, { status: 404 });
+  if (reservation.status !== "HOLD" || reservation.payment_status !== "PAYMENT_PENDING") {
+    return NextResponse.json(
+      { error: "La reserva no está lista para iniciar pago online." },
+      { status: 409 }
+    );
+  }
 
-  const site = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const preference = await createPreference({
+  const site = resolveSiteUrl(request);
+  const isLocal = site.includes("localhost") || site.includes("127.0.0.1");
+
+  const preferencePayload = {
     items: [
       {
         title: `Reserva ${reservation.booking_code} - ${reservation.court_name}`,
@@ -28,13 +56,24 @@ export async function POST(request) {
       }
     ],
     external_reference: reservation.booking_code,
-    notification_url: `${site}/api/payments/mp/webhook`,
-      metadata: {
-        booking_code: reservation.booking_code,
-        reservation_id: reservation.id,
-        ui_method: parsed.data.ui_method
-      }
-  });
+    back_urls: {
+      success: `${site}/confirmacion/${reservation.booking_code}`,
+      pending: `${site}/confirmacion/${reservation.booking_code}`,
+      failure: `${site}/checkout/${reservation.booking_code}`
+    },
+    metadata: {
+      booking_code: reservation.booking_code,
+      reservation_id: reservation.id,
+      ui_method: parsed.data.ui_method
+    }
+  };
+
+  if (!isLocal) {
+    preferencePayload.auto_return = "approved";
+    preferencePayload.notification_url = `${site}/api/payments/mp/webhook`;
+  }
+
+  const preference = await createPreference(preferencePayload);
 
   await createPayment({
     club_id: reservation.club_id,

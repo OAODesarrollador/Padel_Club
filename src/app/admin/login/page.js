@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
         });
         return;
       }
-      router.push("/admin/reservas");
+      router.push("/admin");
     } catch {
       feedback.showError({
         ...mapApiError({

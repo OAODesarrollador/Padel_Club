@@ -299,6 +299,16 @@ a:hover {
   background: rgba(245, 158, 11, 0.2);
 }
 
+.status-badge--maintenance {
+  color: #9a3412;
+  background: rgba(251, 146, 60, 0.2);
+}
+
+.status-badge--inactive {
+  color: #374151;
+  background: rgba(107, 114, 128, 0.22);
+}
+
 .status-badge--info {
   color: #1d4ed8;
   background: rgba(59, 130, 246, 0.15);
@@ -535,6 +545,49 @@ a:hover {
   padding-bottom: 24px;
 }
 
+.admin-global-nav {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  width: min(100%, 1120px);
+  pointer-events: none;
+}
+
+.admin-global-nav__inner {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.65rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.admin-global-nav__title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--brand-primary-700);
+  white-space: nowrap;
+}
+
+.admin-global-nav__menu {
+  margin-left: auto;
+}
+
+.admin-page-shell {
+  padding-top: 84px;
+  padding-bottom: 24px;
+}
+
+.admin-page-content {
+  padding-top: 8px;
+}
+
 .reservation-page {
   padding-bottom: 1rem;
 }
@@ -682,6 +735,19 @@ a:hover {
 
   .public-page-shell {
     padding-top: 68px;
+    padding-bottom: 20px;
+  }
+
+  .admin-global-nav__inner {
+    height: 56px;
+  }
+
+  .admin-global-nav__title {
+    font-size: 0.82rem;
+  }
+
+  .admin-page-shell {
+    padding-top: 72px;
     padding-bottom: 20px;
   }
 
