@@ -8,7 +8,12 @@ const patchSchema = z.object({
   status: z.enum(["HOLD", "CONFIRMED", "CANCELED", "NO_SHOW"]).optional(),
   start_at: z.string().datetime().optional(),
   end_at: z.string().datetime().optional(),
-  payment_status: z.string().optional()
+  payment_status: z.string().optional(),
+  customer_name: z.string().optional(),
+  customer_phone: z.string().optional(),
+  customer_email: z.string().email().optional().or(z.literal("")),
+  notes: z.string().optional(),
+  total_amount: z.number().nonnegative().optional()
 });
 
 export async function PATCH(request, { params }) {
@@ -18,6 +23,14 @@ export async function PATCH(request, { params }) {
   const payload = await request.json();
   const parsed = patchSchema.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  if (parsed.data.start_at && parsed.data.end_at) {
+    const start = new Date(parsed.data.start_at);
+    const end = new Date(parsed.data.end_at);
+    if (!(end > start)) {
+      return NextResponse.json({ error: "Rango horario inválido" }, { status: 400 });
+    }
+    parsed.data.duration_min = Math.max(1, Math.round((end.getTime() - start.getTime()) / 60_000));
+  }
 
   const fields = [];
   const args = [];
