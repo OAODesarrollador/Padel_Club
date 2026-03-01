@@ -5,12 +5,11 @@ import { createHoldReservation, listReservations } from "@/lib/sql/reservations"
 import { writeAuditLog } from "@/lib/sql/audit";
 
 const createSchema = z.object({
-  club_id: z.number().int().positive(),
   court_id: z.number().int().positive(),
   start_at: z.string().datetime(),
   end_at: z.string().datetime(),
   duration_min: z.number().int().positive(),
-  total_amount: z.number().nonnegative(),
+  total_amount_cents: z.number().int().nonnegative(),
   customer_name: z.string().min(2),
   customer_phone: z.string().min(6),
   customer_email: z.string().email().optional().or(z.literal(""))
@@ -37,9 +36,12 @@ export async function POST(request) {
   const parsed = createSchema.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   try {
-    const created = await createHoldReservation(parsed.data);
+    const created = await createHoldReservation({
+      ...parsed.data,
+      club_id: Number(auth.staff.club_id)
+    });
     await writeAuditLog({
-      club_id: parsed.data.club_id,
+      club_id: Number(auth.staff.club_id),
       staff_user_id: Number(auth.staff.sub),
       action: "ADMIN_CREATE_HOLD",
       resource: "reservation",

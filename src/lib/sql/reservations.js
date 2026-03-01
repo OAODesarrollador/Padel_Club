@@ -14,21 +14,25 @@ export async function cleanupExpiredHolds(clubId) {
   });
 }
 
-export async function getReservationByCode(code) {
+export async function getReservationByCode(code, clubId = null) {
+  const whereClub = clubId ? "AND r.club_id = ?" : "";
+  const args = clubId ? [code, clubId] : [code];
   const rs = await db.execute({
     sql: `SELECT r.*, c.name as court_name, c.sport
           FROM reservations r
           JOIN courts c ON c.id = r.court_id
-          WHERE r.booking_code = ?`,
-    args: [code]
+          WHERE r.booking_code = ?
+          ${whereClub}
+          LIMIT 1`,
+    args
   });
   return rs.rows?.[0] || null;
 }
 
-export async function getReservationById(id) {
+export async function getReservationById({ id, clubId }) {
   const rs = await db.execute({
-    sql: "SELECT * FROM reservations WHERE id = ?",
-    args: [id]
+    sql: "SELECT * FROM reservations WHERE id = ? AND club_id = ?",
+    args: [id, clubId]
   });
   return rs.rows?.[0] || null;
 }
@@ -51,7 +55,7 @@ export async function listReservations(clubId, filters = {}) {
   const selectClause = filters.view === "grid"
     ? `SELECT r.id, r.club_id, r.court_id, r.booking_code, r.status, r.payment_status,
               r.start_at, r.end_at, r.customer_name, r.customer_phone, r.customer_email, r.notes,
-              r.total_amount, c.name as court_name, c.sport`
+              r.total_amount_cents, c.name as court_name, c.sport`
     : `SELECT r.*, c.name as court_name, c.sport`;
   let sql = `${selectClause}
              FROM reservations r
@@ -87,7 +91,7 @@ export async function getAvailability({ clubId, sport, dayStartUtc, dayEndUtc })
     args.push(sport);
   }
   const rs = await db.execute({
-    sql: `SELECT c.id as court_id, c.name as court_name, c.sport, c.price_per_hour, c.min_duration_min,
+    sql: `SELECT c.id as court_id, c.name as court_name, c.sport, c.price_per_hour_cents, c.min_duration_min,
                  r.id as reservation_id, r.status, r.start_at, r.end_at
           FROM courts c
           LEFT JOIN reservations r
@@ -137,7 +141,7 @@ export async function createHoldReservation(input) {
     const rs = await trx.execute({
       sql: `INSERT INTO reservations (
               club_id, court_id, booking_code, status, payment_status, start_at, end_at, duration_min,
-              customer_name, customer_phone, customer_email, notes, total_amount, expires_at, manage_token_hash
+              customer_name, customer_phone, customer_email, notes, total_amount_cents, expires_at, manage_token_hash
             ) VALUES (?, ?, ?, 'HOLD', 'UNDEFINED', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING *`,
       args: [
@@ -151,7 +155,7 @@ export async function createHoldReservation(input) {
         input.customer_phone || "",
         input.customer_email || "",
         input.notes || "",
-        input.total_amount,
+        input.total_amount_cents,
         expiresAt,
         manageTokenHash
       ]
@@ -179,8 +183,9 @@ export async function confirmReservation(input) {
       sql: `SELECT *
             FROM reservations
             WHERE booking_code = ?
+              AND club_id = ?
             LIMIT 1`,
-      args: [input.booking_code]
+      args: [input.booking_code, input.club_id]
     });
     const row = existing.rows?.[0];
     if (!row) throw new Error("NOT_FOUND");
@@ -226,6 +231,7 @@ export async function confirmReservation(input) {
                 expires_at = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
+              AND club_id = ?
             RETURNING *`,
       args: [
         nextStatus,
@@ -236,7 +242,8 @@ export async function confirmReservation(input) {
         input.customer_email,
         input.notes || "",
         nextExpiresAt,
-        row.id
+        row.id,
+        row.club_id
       ]
     });
 

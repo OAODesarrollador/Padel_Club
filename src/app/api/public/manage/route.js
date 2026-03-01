@@ -9,7 +9,7 @@ export async function GET(request) {
   if (!token) return NextResponse.json({ error: "token requerido" }, { status: 400 });
 
   const ip = getClientIp(request);
-  const guard = checkRateLimit({ scope: "manage-get-ip", id: ip, limit: 40, windowMs: 60_000 });
+  const guard = await checkRateLimit({ scope: "manage-get-ip", id: ip, limit: 40, windowMs: 60_000 });
   if (!guard.ok) return NextResponse.json({ error: "Rate limit" }, { status: 429 });
 
   const reservation = await getReservationByManageToken(token);

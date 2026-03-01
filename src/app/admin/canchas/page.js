@@ -6,14 +6,13 @@ import { useFeedback } from "@/components/ui/FeedbackProvider";
 import { mapApiError } from "@/lib/clientFeedback";
 
 const defaultForm = {
-  club_id: 1,
   name: "",
   sport: "PADEL",
   image_url: "",
   surface: "CRISTAL",
   location_type: "INTERIOR",
   status: "ACTIVE",
-  price_per_hour: 25,
+  price_per_hour_cents: 2500,
   min_duration_min: 90
 };
 
@@ -89,7 +88,7 @@ export default function AdminCanchasPage() {
           surface: form.surface,
           location_type: form.location_type,
           status: form.status,
-          price_per_hour: form.price_per_hour,
+          price_per_hour_cents: form.price_per_hour_cents,
           min_duration_min: form.min_duration_min
         })
       });
@@ -178,14 +177,13 @@ export default function AdminCanchasPage() {
 
   function onStartEdit(row) {
     setForm({
-      club_id: Number(row.club_id) || 1,
       name: row.name || "",
       sport: row.sport || "PADEL",
       image_url: row.image_url || "",
       surface: row.surface || "",
       location_type: row.location_type || "",
       status: row.status || "ACTIVE",
-      price_per_hour: Number(row.price_per_hour || 0),
+      price_per_hour_cents: Number(row.price_per_hour_cents || 0),
       min_duration_min: Number(row.min_duration_min || 60)
     });
     setEditingId(row.id);
@@ -241,7 +239,12 @@ export default function AdminCanchasPage() {
               </label>
               <label className="text-sm">
                 <span className="mb-1 block text-muted">Precio por hora</span>
-                <input className="w-full rounded-xl border border-line px-3 py-2" type="number" value={form.price_per_hour} onChange={(e) => setForm({ ...form, price_per_hour: Number(e.target.value) })} />
+                <input
+                  className="w-full rounded-xl border border-line px-3 py-2"
+                  type="number"
+                  value={(Number(form.price_per_hour_cents || 0) / 100).toFixed(2)}
+                  onChange={(e) => setForm({ ...form, price_per_hour_cents: Math.round(Number(e.target.value || 0) * 100) })}
+                />
               </label>
               <label className="text-sm">
                 <span className="mb-1 block text-muted">Duración mínima (min)</span>
@@ -300,7 +303,7 @@ export default function AdminCanchasPage() {
                   <h4 className="truncate text-xl font-black leading-tight">{row.name}</h4>
                   <p className="text-[11px] font-bold uppercase leading-tight text-muted">{row.surface} / {row.location_type}</p>
                   <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs leading-tight">
-                    <p><span className="text-muted">Precio:</span> ${Number(row.price_per_hour).toFixed(2)}</p>
+                    <p><span className="text-muted">Precio:</span> ${(Number(row.price_per_hour_cents || 0) / 100).toFixed(2)}</p>
                     <p><span className="text-muted">Duración:</span> {row.min_duration_min} min</p>
                   </div>
                   <span

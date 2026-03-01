@@ -1,8 +1,9 @@
 import { listPublicEvents } from "@/lib/sql/events";
+import { getPublicClubId } from "@/lib/config/club";
 import EventosClient from "./EventosClient";
 
 export default async function EventosPage() {
-  const events = await listPublicEvents(1);
+  const events = await listPublicEvents(getPublicClubId());
   const fallback = [
     {
       id: 1,

@@ -10,6 +10,14 @@ export function toMoney(value) {
   return Number(value || 0).toFixed(2);
 }
 
+export function amountToCents(value) {
+  return Math.round(Number(value || 0) * 100);
+}
+
+export function centsToAmount(cents) {
+  return Number(cents || 0) / 100;
+}
+
 export function mapPaymentUiToMethod(value) {
   if (value === "mp") return "WALLET_MP";
   if (value === "transfer") return "TRANSFER_EXTERNAL";

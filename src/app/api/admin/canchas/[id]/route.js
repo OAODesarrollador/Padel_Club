@@ -10,7 +10,7 @@ const schema = z.object({
   surface: z.string().optional(),
   location_type: z.string().optional(),
   status: z.enum(["ACTIVE", "MAINTENANCE"]),
-  price_per_hour: z.number().nonnegative(),
+  price_per_hour_cents: z.number().int().nonnegative(),
   min_duration_min: z.number().int().positive()
 });
 
@@ -21,7 +21,11 @@ export async function PATCH(request, { params }) {
   const payload = await request.json();
   const parsed = schema.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const row = await updateCourt(Number(id), parsed.data);
+  const row = await updateCourt({
+    id: Number(id),
+    clubId: Number(auth.staff.club_id),
+    payload: parsed.data
+  });
   if (!row) return NextResponse.json({ error: "Cancha no encontrada" }, { status: 404 });
   return NextResponse.json({ ok: true, row });
 }
@@ -31,7 +35,10 @@ export async function DELETE(request, { params }) {
   const auth = await requireStaff(request, ["ADMIN"]);
   if (auth.error) return auth.error;
   try {
-    const deleted = await deleteCourt(Number(id));
+    const deleted = await deleteCourt({
+      id: Number(id),
+      clubId: Number(auth.staff.club_id)
+    });
     if (!deleted) return NextResponse.json({ error: "Cancha no encontrada" }, { status: 404 });
     return NextResponse.json({ ok: true, deleted });
   } catch (error) {

@@ -13,7 +13,7 @@ const patchSchema = z.object({
   customer_phone: z.string().optional(),
   customer_email: z.string().email().optional().or(z.literal("")),
   notes: z.string().optional(),
-  total_amount: z.number().nonnegative().optional()
+  total_amount_cents: z.number().int().nonnegative().optional()
 });
 
 export async function PATCH(request, { params }) {
@@ -40,9 +40,13 @@ export async function PATCH(request, { params }) {
   }
   if (fields.length === 0) return NextResponse.json({ error: "Sin cambios" }, { status: 400 });
   args.push(Number(id));
+  args.push(Number(auth.staff.club_id));
 
   const rs = await db.execute({
-    sql: `UPDATE reservations SET ${fields.join(", ")}, updated_at = CURRENT_TIMESTAMP WHERE id = ? RETURNING *`,
+    sql: `UPDATE reservations
+          SET ${fields.join(", ")}, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ? AND club_id = ?
+          RETURNING *`,
     args
   });
   const row = rs.rows?.[0];
@@ -66,9 +70,9 @@ export async function DELETE(request, { params }) {
   const rs = await db.execute({
     sql: `UPDATE reservations
           SET status = 'CANCELED', cancel_reason = 'ADMIN_CANCEL', canceled_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-          WHERE id = ?
+          WHERE id = ? AND club_id = ?
           RETURNING *`,
-    args: [Number(id)]
+    args: [Number(id), Number(auth.staff.club_id)]
   });
   const row = rs.rows?.[0];
   if (!row) return NextResponse.json({ error: "No encontrada" }, { status: 404 });

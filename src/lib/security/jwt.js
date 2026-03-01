@@ -7,6 +7,7 @@ if (!secret) {
 }
 
 const key = new TextEncoder().encode(secret);
+const VALID_ROLES = new Set(["ADMIN", "SECRETARY"]);
 
 export async function signStaffToken(payload) {
   return new SignJWT(payload)
@@ -17,6 +18,13 @@ export async function signStaffToken(payload) {
 }
 
 export async function verifyStaffToken(token) {
-  const { payload } = await jwtVerify(token, key);
+  const { payload } = await jwtVerify(token, key, {
+    algorithms: ["HS256"]
+  });
+  const role = String(payload?.role || "");
+  const clubId = Number(payload?.club_id);
+  if (!VALID_ROLES.has(role) || !Number.isInteger(clubId) || clubId <= 0) {
+    throw new Error("STAFF_TOKEN_CLAIMS_INVALID");
+  }
   return payload;
 }

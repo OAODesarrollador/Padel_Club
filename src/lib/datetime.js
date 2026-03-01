@@ -35,3 +35,15 @@ export function parseUtcDate(value) {
   const normalized = raw.includes("T") ? `${raw}Z` : `${raw.replace(" ", "T")}Z`;
   return new Date(normalized);
 }
+
+export function clubTimeZone() {
+  return process.env.NEXT_PUBLIC_CLUB_TIMEZONE || "UTC";
+}
+
+export function formatInClubTimeZone(value, options = {}) {
+  const date = value instanceof Date ? value : parseUtcDate(value);
+  return new Intl.DateTimeFormat("es-AR", {
+    timeZone: clubTimeZone(),
+    ...options
+  }).format(date);
+}

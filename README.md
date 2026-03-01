@@ -10,7 +10,7 @@ Sistema full-stack de reservas de canchas (público + admin) con:
   - `CARD_MP` (Mercado Pago)
   - `WALLET_MP` (Mercado Pago)
   - `TRANSFER_EXTERNAL` (manual)
-- Webhook MP con verificación de firma + idempotencia
+- Webhook MP con verificación estricta de firma + idempotencia por `mp_payment_id`
 
 ## 1) Variables de entorno
 
@@ -19,23 +19,34 @@ Crear `.env.local` desde `.env.example`:
 ```env
 TURSO_DATABASE_URL=
 TURSO_AUTH_TOKEN=
-NEXT_PUBLIC_MP_PUBLIC_KEY=
+JWT_SECRET=
 MP_ACCESS_TOKEN=
 MP_WEBHOOK_SECRET=
-JWT_SECRET=
+NEXT_PUBLIC_MP_PUBLIC_KEY=
 CLUB_TRANSFER_INFO_ALIAS=
 CLUB_TRANSFER_INFO_CBU=
 CLUB_TRANSFER_INFO_TITULAR=
 CLUB_TRANSFER_INFO_BANK=
+NEXT_PUBLIC_CLUB_TRANSFER_ALIAS=
+NEXT_PUBLIC_CLUB_TRANSFER_CBU=
+NEXT_PUBLIC_CLUB_TRANSFER_TITULAR=
+PUBLIC_CLUB_ID=1
+NEXT_PUBLIC_CLUB_TIMEZONE=UTC
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 ```
 
 ## 2) Base de datos Turso
 
-Aplicar esquema:
+Aplicar esquema y migraciones versionadas:
 
 ```sql
 -- sql/schema.sql
+```
+
+```bash
+npm run db:migrate
 ```
 
 Luego seed:
@@ -68,7 +79,19 @@ Credenciales seed:
 - Admin: `admin@club.com / admin123`
 - Secretario: `secretario@club.com / secre123`
 
-## 4) Pagos Mercado Pago
+## 4) Tests mínimos
+
+```bash
+npm test
+```
+
+Incluye validaciones de:
+- hash seguro (sin fallback plaintext)
+- claims JWT (`role`, `club_id`)
+- firma webhook MP
+- scoping multi-club en mutaciones admin críticas
+
+## 5) Pagos Mercado Pago
 
 Endpoints:
 - `POST /api/payments/mp/create`
@@ -80,7 +103,7 @@ Flujo:
 3. Redirigir a `init_point`
 4. MP notifica webhook y se actualiza `payments` y `reservations.payment_status`
 
-## 5) Despliegue en Vercel
+## 6) Despliegue en Vercel
 
 1. Subir repo a GitHub.
 2. Crear proyecto en Vercel.
@@ -89,7 +112,7 @@ Flujo:
 5. Configurar webhook MP apuntando a:
    - `https://tu-dominio.com/api/payments/mp/webhook`
 
-## 6) Transferencia externa (manual)
+## 7) Transferencia externa (manual)
 
 El checkout muestra instrucciones de transferencia (alias/cbu/titular).
 Al confirmar:
@@ -98,3 +121,11 @@ Al confirmar:
 
 Staff puede marcar pago como cobrado:
 - `PATCH /api/admin/pagos/:id/mark-paid`
+
+## 8) Rotación de secretos comprometidos (si hubo exposición en repo)
+
+Rotar inmediatamente:
+- `TURSO_AUTH_TOKEN` y cualquier token con acceso DB.
+- `MP_ACCESS_TOKEN` y `NEXT_PUBLIC_MP_PUBLIC_KEY`.
+- `JWT_SECRET`.
+- `MP_WEBHOOK_SECRET`.

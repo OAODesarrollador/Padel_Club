@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { useFeedback } from "@/components/ui/FeedbackProvider";
 import { mapApiError } from "@/lib/clientFeedback";
+import { formatInClubTimeZone } from "@/lib/datetime";
 
 export function GestionarClient() {
   const search = useSearchParams();
@@ -162,7 +163,7 @@ export function GestionarClient() {
           <div className="space-y-4 rounded-3xl border border-line bg-white p-4">
             <h2 className="text-2xl font-black">{reservation.booking_code}</h2>
             <p>{reservation.court_name}</p>
-            <p>{new Date(reservation.start_at).toLocaleString("es-AR")}</p>
+            <p>{formatInClubTimeZone(reservation.start_at, { dateStyle: "short", timeStyle: "short" })}</p>
             <p className="text-sm text-muted">Estado: {reservation.status}</p>
 
             <div className="grid gap-2 sm:grid-cols-2">

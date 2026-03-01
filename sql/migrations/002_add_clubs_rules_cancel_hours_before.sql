@@ -1,0 +1,1 @@
+ALTER TABLE clubs ADD COLUMN cancel_hours_before INTEGER NOT NULL DEFAULT 2;

@@ -215,7 +215,7 @@ export default function AdminReservasPage() {
       customer_phone: row.customer_phone || "",
       customer_email: row.customer_email || "",
       notes: row.notes || "",
-      total_amount: Number(row.total_amount || 0),
+      total_amount_cents: Number(row.total_amount_cents || 0),
       start_at: toInputDateTime(row.start_at),
       end_at: toInputDateTime(row.end_at)
     });
@@ -253,7 +253,7 @@ export default function AdminReservasPage() {
           customer_phone: form.customer_phone,
           customer_email: form.customer_email,
           notes: form.notes,
-          total_amount: Number(form.total_amount || 0),
+          total_amount_cents: Number(form.total_amount_cents || 0),
           start_at: startAt,
           end_at: endAt
         })
@@ -532,8 +532,8 @@ export default function AdminReservasPage() {
                   min="0"
                   step="0.01"
                   className="w-full rounded-xl border border-line px-3 py-2"
-                  value={form.total_amount}
-                  onChange={(e) => setForm({ ...form, total_amount: e.target.value })}
+                  value={(Number(form.total_amount_cents || 0) / 100).toFixed(2)}
+                  onChange={(e) => setForm({ ...form, total_amount_cents: Math.round(Number(e.target.value || 0) * 100) })}
                 />
               </label>
 

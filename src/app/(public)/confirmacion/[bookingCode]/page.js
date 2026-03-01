@@ -2,11 +2,13 @@ import Link from "next/link";
 import { getReservationByCode } from "@/lib/sql/reservations";
 import { buildClientMessage, buildWaLink } from "@/lib/whatsapp/templates";
 import { Button } from "@/components/ui/Button";
+import { getPublicClubId } from "@/lib/config/club";
+import { formatInClubTimeZone } from "@/lib/datetime";
 
 export default async function ConfirmacionPage({ params, searchParams }) {
   const { bookingCode } = await params;
   const query = await searchParams;
-  const reservation = await getReservationByCode(bookingCode);
+  const reservation = await getReservationByCode(bookingCode, getPublicClubId());
   if (!reservation) {
     return <div className="p-6 text-center">Reserva no encontrada</div>;
   }
@@ -33,8 +35,8 @@ export default async function ConfirmacionPage({ params, searchParams }) {
         <div className="mx-auto mt-4 inline-flex rounded-2xl bg-[#F3F6FB] px-4 py-3 text-2xl font-black">#{reservation.booking_code}</div>
         <div className="mt-5 space-y-2 text-left">
           <p><span className="font-bold">Cancha:</span> {reservation.court_name}</p>
-          <p><span className="font-bold">Fecha:</span> {new Date(reservation.start_at).toLocaleDateString("es-AR")}</p>
-          <p><span className="font-bold">Hora:</span> {new Date(reservation.start_at).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}</p>
+          <p><span className="font-bold">Fecha:</span> {formatInClubTimeZone(reservation.start_at, { dateStyle: "short" })}</p>
+          <p><span className="font-bold">Hora:</span> {formatInClubTimeZone(reservation.start_at, { hour: "2-digit", minute: "2-digit" })}</p>
         </div>
 
         <div className="mt-6 space-y-3">

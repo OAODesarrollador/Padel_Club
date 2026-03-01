@@ -1,27 +1,6 @@
 import { db } from "@/lib/db";
 
-let ruleColumnsChecked = false;
-
-async function ensureRuleColumns() {
-  if (ruleColumnsChecked) return;
-  const alterations = [
-    "ALTER TABLE clubs ADD COLUMN hold_minutes INTEGER NOT NULL DEFAULT 7",
-    "ALTER TABLE clubs ADD COLUMN cancel_hours_before INTEGER NOT NULL DEFAULT 2",
-    "ALTER TABLE clubs ADD COLUMN reschedule_limit INTEGER NOT NULL DEFAULT 1"
-  ];
-  for (const sql of alterations) {
-    try {
-      await db.execute({ sql, args: [] });
-    } catch (error) {
-      const message = String(error?.message || "").toLowerCase();
-      if (!message.includes("duplicate column")) throw error;
-    }
-  }
-  ruleColumnsChecked = true;
-}
-
 export async function getClubSettings(clubId) {
-  await ensureRuleColumns();
   const rs = await db.execute({
     sql: `SELECT
             id, name, slug, phone, email, address, timezone,
@@ -36,7 +15,6 @@ export async function getClubSettings(clubId) {
 }
 
 export async function updateClubSettings(clubId, payload) {
-  await ensureRuleColumns();
   const rs = await db.execute({
     sql: `UPDATE clubs
           SET name = ?,

@@ -1,0 +1,6 @@
+CREATE TRIGGER IF NOT EXISTS trg_payments_updated_at
+AFTER UPDATE ON payments
+FOR EACH ROW
+BEGIN
+  UPDATE payments SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;

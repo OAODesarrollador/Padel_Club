@@ -46,7 +46,7 @@ export async function updateEvent(id, payload) {
   const rs = await db.execute({
     sql: `UPDATE events
           SET title = ?, description = ?, sport = ?, starts_at = ?, spots_left = ?, status = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP
-          WHERE id = ?
+          WHERE id = ? AND club_id = ?
           RETURNING *`,
     args: [
       payload.title,
@@ -56,16 +56,17 @@ export async function updateEvent(id, payload) {
       payload.spots_left || 0,
       payload.status || "DRAFT",
       payload.image_url || "",
-      id
+      id,
+      payload.club_id
     ]
   });
   return rs.rows?.[0] || null;
 }
 
-export async function deleteEvent(id) {
+export async function deleteEvent({ id, clubId }) {
   const rs = await db.execute({
-    sql: "DELETE FROM events WHERE id = ? RETURNING id",
-    args: [id]
+    sql: "DELETE FROM events WHERE id = ? AND club_id = ? RETURNING id",
+    args: [id, clubId]
   });
   return rs.rows?.[0] || null;
 }

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getPayment } from "@/lib/mp/client";
 import { mapMpStatusToPaymentStatus, verifyWebhookSignature } from "@/lib/mp/webhook";
-import { db } from "@/lib/db";
-import { createPayment, updatePaymentByMpPaymentId } from "@/lib/sql/payments";
+import { db, tx } from "@/lib/db";
+import { upsertPaymentByMpPaymentId } from "@/lib/sql/payments";
 
 export async function POST(request) {
   const rawBody = await request.text();
@@ -33,49 +33,44 @@ export async function POST(request) {
   const reservation = reservationRs.rows?.[0];
   if (!reservation) return NextResponse.json({ ok: true });
 
-  const existing = await db.execute({
-    sql: "SELECT * FROM payments WHERE mp_payment_id = ? LIMIT 1",
-    args: [String(paymentId)]
-  });
-  if (existing.rows?.[0]) {
-    await updatePaymentByMpPaymentId(String(paymentId), paymentStatus, mpPayment);
-  } else {
-    await createPayment({
+  await tx(async (trx) => {
+    await upsertPaymentByMpPaymentId({
       club_id: reservation.club_id,
       reservation_id: reservation.id,
       method: "WALLET_MP",
-      amount: mpPayment.transaction_amount || reservation.total_amount,
+      amount_cents: Math.round(Number(mpPayment.transaction_amount || 0) * 100) || reservation.total_amount_cents,
       status: paymentStatus,
       mp_payment_id: String(paymentId),
       raw_payload: mpPayment
     });
-  }
 
-  if (paymentStatus === "PAID") {
-    await db.execute({
-      sql: `UPDATE reservations
-            SET payment_status = 'PAID',
-                status = 'CONFIRMED',
-                expires_at = NULL,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-              AND status IN ('HOLD','CONFIRMED')`,
-      args: [reservation.id]
-    });
-  }
+    if (paymentStatus === "PAID") {
+      await trx.execute({
+        sql: `UPDATE reservations
+              SET payment_status = 'PAID',
+                  status = 'CONFIRMED',
+                  expires_at = NULL,
+                  updated_at = CURRENT_TIMESTAMP
+              WHERE id = ?
+                AND club_id = ?
+                AND status IN ('HOLD','CONFIRMED')`,
+        args: [reservation.id, reservation.club_id]
+      });
+    }
 
-  if (paymentStatus === "REJECTED") {
-    await db.execute({
-      sql: `UPDATE reservations
-            SET payment_status = 'PAYMENT_REJECTED',
-                status = CASE WHEN status = 'HOLD' THEN 'CANCELED' ELSE status END,
-                cancel_reason = CASE WHEN status = 'HOLD' THEN 'PAYMENT_REJECTED' ELSE cancel_reason END,
-                canceled_at = CASE WHEN status = 'HOLD' THEN CURRENT_TIMESTAMP ELSE canceled_at END,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?`,
-      args: [reservation.id]
-    });
-  }
+    if (paymentStatus === "REJECTED") {
+      await trx.execute({
+        sql: `UPDATE reservations
+              SET payment_status = 'PAYMENT_REJECTED',
+                  status = CASE WHEN status = 'HOLD' THEN 'CANCELED' ELSE status END,
+                  cancel_reason = CASE WHEN status = 'HOLD' THEN 'PAYMENT_REJECTED' ELSE cancel_reason END,
+                  canceled_at = CASE WHEN status = 'HOLD' THEN CURRENT_TIMESTAMP ELSE canceled_at END,
+                  updated_at = CURRENT_TIMESTAMP
+              WHERE id = ? AND club_id = ?`,
+        args: [reservation.id, reservation.club_id]
+      });
+    }
+  });
 
   return NextResponse.json({ ok: true });
 }

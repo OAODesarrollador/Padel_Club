@@ -133,7 +133,6 @@ export default function CheckoutPage({ params }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          club_id: 1,
           booking_code: bookingCode,
           payment_ui_method: method,
           ...form
@@ -195,7 +194,7 @@ export default function CheckoutPage({ params }) {
     }
   }
 
-  const total = reservation ? Number(reservation.total_amount).toFixed(2) : "0.00";
+  const total = reservation ? (Number(reservation.total_amount_cents || 0) / 100).toFixed(2) : "0.00";
 
   return (
     <div className="checkout-page">
@@ -307,7 +306,7 @@ export default function CheckoutPage({ params }) {
               <p className="text-[10px] font-bold text-indigo-500 uppercase px-0.5">Datos Bancarios</p>
               <CopyField
                 label="Titular"
-                value={process.env.NEXT_PUBLIC_CLUB_TRANSFER_TITULAR || process.env.CLUB_TRANSFER_INFO_TITULAR || "Nombre del Titular"}
+                value={process.env.NEXT_PUBLIC_CLUB_TRANSFER_TITULAR || "Nombre del Titular"}
               />
               <CopyField
                 label="Alias"

@@ -1,0 +1,1 @@
+ALTER TABLE courts ADD COLUMN price_per_hour_cents INTEGER NOT NULL DEFAULT 0;

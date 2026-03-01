@@ -9,3 +9,14 @@ export async function getStaffByEmail(email) {
   });
   return rs.rows?.[0] || null;
 }
+
+export async function updateStaffPasswordHash({ id, passwordHash }) {
+  const rs = await db.execute({
+    sql: `UPDATE staff_users
+          SET password_hash = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE id = ?
+          RETURNING id, club_id, email, password_hash, full_name, role, active`,
+    args: [passwordHash, id]
+  });
+  return rs.rows?.[0] || null;
+}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
+import { formatInClubTimeZone } from "@/lib/datetime";
 
 export default function EventosClient({ rows }) {
   const [openId, setOpenId] = useState(null);
@@ -26,7 +27,7 @@ export default function EventosClient({ rows }) {
               <div className={`space-y-2 p-4 ${imageFirst ? "md:order-2" : "md:order-1"}`}>
                 <p className="inline-flex rounded-md bg-[#0F172A] px-2 py-1 text-[10px] font-black text-white">{event.sport}</p>
                 <h2 className="text-2xl font-black">{event.title}</h2>
-                <p className="text-sm text-muted">{new Date(event.starts_at).toLocaleString("es-AR")}</p>
+                <p className="text-sm text-muted">{formatInClubTimeZone(event.starts_at, { dateStyle: "short", timeStyle: "short" })}</p>
                 <p className="text-sm text-muted">Cupos disponibles: {Number(event.spots_left || 0)}</p>
 
                 {isOpen ? (

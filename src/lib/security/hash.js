@@ -6,9 +6,7 @@ export async function hashPassword(value) {
 }
 
 export async function comparePassword(value, hash) {
-  if (!String(hash).startsWith("$2")) {
-    return value === hash;
-  }
+  if (!String(hash).startsWith("$2")) return false;
   return bcrypt.compare(value, hash);
 }
 

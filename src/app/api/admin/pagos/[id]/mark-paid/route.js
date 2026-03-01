@@ -7,12 +7,15 @@ export async function PATCH(request, { params }) {
   const { id } = await params;
   const auth = await requireStaff(request, ["ADMIN", "SECRETARY"]);
   if (auth.error) return auth.error;
-  const payment = await getPaymentById(Number(id));
+  const clubId = Number(auth.staff.club_id);
+  const payment = await getPaymentById({ id: Number(id), clubId });
   if (!payment) return NextResponse.json({ error: "Pago no encontrado" }, { status: 404 });
-  await updatePaymentStatusById(payment.id, "PAID");
+  await updatePaymentStatusById({ id: payment.id, clubId, status: "PAID" });
   await db.execute({
-    sql: "UPDATE reservations SET payment_status = 'PAID', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-    args: [payment.reservation_id]
+    sql: `UPDATE reservations
+          SET payment_status = 'PAID', updated_at = CURRENT_TIMESTAMP
+          WHERE id = ? AND club_id = ?`,
+    args: [payment.reservation_id, clubId]
   });
   return NextResponse.json({ ok: true });
 }

@@ -1,0 +1,6 @@
+CREATE TRIGGER IF NOT EXISTS trg_clubs_updated_at
+AFTER UPDATE ON clubs
+FOR EACH ROW
+BEGIN
+  UPDATE clubs SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;

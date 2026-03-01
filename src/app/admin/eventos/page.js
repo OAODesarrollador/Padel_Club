@@ -6,7 +6,6 @@ import { useFeedback } from "@/components/ui/FeedbackProvider";
 import { mapApiError } from "@/lib/clientFeedback";
 
 const initial = {
-  club_id: 1,
   title: "",
   description: "",
   sport: "PADEL",
@@ -180,7 +179,6 @@ export default function AdminEventosPage() {
 
   function onStartEdit(row) {
     setForm({
-      club_id: Number(row.club_id) || 1,
       title: row.title || "",
       description: row.description || "",
       sport: row.sport || "PADEL",

@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS courts (
   surface TEXT,
   location_type TEXT,
   status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE','MAINTENANCE')),
-  price_per_hour REAL NOT NULL DEFAULT 0,
+  price_per_hour_cents INTEGER NOT NULL DEFAULT 0,
   min_duration_min INTEGER NOT NULL DEFAULT 60,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS reservations (
   customer_phone TEXT,
   customer_email TEXT,
   notes TEXT,
-  total_amount REAL NOT NULL DEFAULT 0,
+  total_amount_cents INTEGER NOT NULL DEFAULT 0,
   expires_at TEXT,
   manage_token_hash TEXT,
   cancel_reason TEXT,
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS pricing_rules (
   day_of_week INTEGER,
   from_hour INTEGER,
   to_hour INTEGER,
-  price REAL NOT NULL,
+  price_cents INTEGER NOT NULL,
   active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS payments (
   club_id INTEGER NOT NULL,
   reservation_id INTEGER NOT NULL,
   method TEXT NOT NULL CHECK(method IN ('CASH','CARD_MP','WALLET_MP','TRANSFER_EXTERNAL')),
-  amount REAL NOT NULL,
+  amount_cents INTEGER NOT NULL,
   currency TEXT NOT NULL DEFAULT 'ARS',
   status TEXT NOT NULL CHECK(status IN ('PENDING','PAID','REJECTED')),
   mp_preference_id TEXT,
@@ -163,3 +163,54 @@ CREATE TABLE IF NOT EXISTS message_logs (
 CREATE INDEX IF NOT EXISTS idx_reservations_club_court_start ON reservations(club_id, court_id, start_at);
 CREATE INDEX IF NOT EXISTS idx_reservations_club_status ON reservations(club_id, status);
 CREATE INDEX IF NOT EXISTS idx_payments_reservation ON payments(reservation_id);
+CREATE INDEX IF NOT EXISTS idx_payments_club_mp_payment ON payments(club_id, mp_payment_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_payments_mp_payment_id ON payments(mp_payment_id) WHERE mp_payment_id IS NOT NULL;
+
+CREATE TRIGGER IF NOT EXISTS trg_clubs_updated_at
+AFTER UPDATE ON clubs
+FOR EACH ROW
+BEGIN
+  UPDATE clubs SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_courts_updated_at
+AFTER UPDATE ON courts
+FOR EACH ROW
+BEGIN
+  UPDATE courts SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_events_updated_at
+AFTER UPDATE ON events
+FOR EACH ROW
+BEGIN
+  UPDATE events SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_staff_users_updated_at
+AFTER UPDATE ON staff_users
+FOR EACH ROW
+BEGIN
+  UPDATE staff_users SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_reservations_updated_at
+AFTER UPDATE ON reservations
+FOR EACH ROW
+BEGIN
+  UPDATE reservations SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_pricing_rules_updated_at
+AFTER UPDATE ON pricing_rules
+FOR EACH ROW
+BEGIN
+  UPDATE pricing_rules SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_payments_updated_at
+AFTER UPDATE ON payments
+FOR EACH ROW
+BEGIN
+  UPDATE payments SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;

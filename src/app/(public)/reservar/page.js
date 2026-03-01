@@ -68,7 +68,7 @@ export default function ReservarPage() {
   const loadAvailability = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/public/availability?clubId=1&sport=${sport}&day=${selectedDayYmd}`, {
+      const response = await fetch(`/api/public/availability?sport=${sport}&day=${selectedDayYmd}`, {
         cache: "no-store"
       });
       const data = await response.json();
@@ -110,7 +110,7 @@ export default function ReservarPage() {
           id: row.court_id,
           name: row.court_name,
           sport: row.sport,
-          price: Number(row.price_per_hour || 0),
+          price: Number(row.price_per_hour_cents || 0) / 100,
           rows: []
         });
       }
@@ -128,12 +128,11 @@ export default function ReservarPage() {
     if (!selected) return;
     try {
       const payload = {
-        club_id: 1,
         court_id: selected.courtId,
         start_at: selected.startAt,
         end_at: selected.endAt,
         duration_min: 90,
-        total_amount: selected.price,
+        total_amount_cents: Math.round(Number(selected.price || 0) * 100),
         customer_name: "",
         customer_phone: "",
         customer_email: ""

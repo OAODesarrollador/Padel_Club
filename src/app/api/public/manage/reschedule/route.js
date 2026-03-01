@@ -16,11 +16,11 @@ export async function POST(request) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
   const ip = getClientIp(request);
-  const guard = checkRateLimit({ scope: "manage-reschedule-ip", id: ip, limit: 6, windowMs: 60_000 });
+  const guard = await checkRateLimit({ scope: "manage-reschedule-ip", id: ip, limit: 6, windowMs: 60_000 });
   if (!guard.ok) return NextResponse.json({ error: "Rate limit" }, { status: 429 });
   const reservation = await getReservationByManageToken(parsed.data.token);
   const phoneId = reservation?.customer_phone || "unknown";
-  const byPhone = checkRateLimit({ scope: "manage-reschedule-phone", id: phoneId, limit: 4, windowMs: 60_000 });
+  const byPhone = await checkRateLimit({ scope: "manage-reschedule-phone", id: phoneId, limit: 4, windowMs: 60_000 });
   if (!byPhone.ok) return NextResponse.json({ error: "Límite de intentos por teléfono" }, { status: 429 });
 
   try {

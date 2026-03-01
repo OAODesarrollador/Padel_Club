@@ -4,7 +4,6 @@ import { requireStaff } from "@/lib/security/auth";
 import { createEvent, listAdminEvents } from "@/lib/sql/events";
 
 const schema = z.object({
-  club_id: z.number().int().positive(),
   title: z.string().min(2),
   description: z.string().optional(),
   sport: z.enum(["PADEL", "FUTBOL", "TENIS"]),
@@ -27,6 +26,9 @@ export async function POST(request) {
   const payload = await request.json();
   const parsed = schema.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  const row = await createEvent(parsed.data);
+  const row = await createEvent({
+    ...parsed.data,
+    club_id: Number(auth.staff.club_id)
+  });
   return NextResponse.json({ ok: true, row });
 }

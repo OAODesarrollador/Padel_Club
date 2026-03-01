@@ -3,6 +3,8 @@ import { z } from "zod";
 import { createPreference } from "@/lib/mp/client";
 import { createPayment } from "@/lib/sql/payments";
 import { getReservationByCode } from "@/lib/sql/reservations";
+import { centsToAmount } from "@/lib/utils";
+import { getPublicClubId } from "@/lib/config/club";
 
 const schema = z.object({
   booking_code: z.string().min(3),
@@ -34,7 +36,7 @@ export async function POST(request) {
   const parsed = schema.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const reservation = await getReservationByCode(parsed.data.booking_code);
+  const reservation = await getReservationByCode(parsed.data.booking_code, getPublicClubId());
   if (!reservation) return NextResponse.json({ error: "Reserva no encontrada" }, { status: 404 });
   if (reservation.status !== "HOLD" || reservation.payment_status !== "PAYMENT_PENDING") {
     return NextResponse.json(
@@ -52,7 +54,7 @@ export async function POST(request) {
         title: `Reserva ${reservation.booking_code} - ${reservation.court_name}`,
         quantity: 1,
         currency_id: "ARS",
-        unit_price: Number(reservation.total_amount)
+        unit_price: centsToAmount(reservation.total_amount_cents)
       }
     ],
     external_reference: reservation.booking_code,
@@ -79,7 +81,7 @@ export async function POST(request) {
     club_id: reservation.club_id,
     reservation_id: reservation.id,
     method: "WALLET_MP",
-    amount: reservation.total_amount,
+    amount_cents: reservation.total_amount_cents,
     status: "PENDING",
     mp_preference_id: preference.id,
     raw_payload: preference

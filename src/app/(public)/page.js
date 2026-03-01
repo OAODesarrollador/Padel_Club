@@ -3,9 +3,10 @@ import Link from "next/link";
 import { Card } from "@/components/ui/AppScaffold";
 import { Button } from "@/components/ui/Button";
 import { listCourts } from "@/lib/sql/courts";
+import { getPublicClubId } from "@/lib/config/club";
 
 export default async function HomePage() {
-  const courts = await listCourts(1);
+  const courts = await listCourts(getPublicClubId());
 
   return (
     <div className="home-page-dark pb-24">
@@ -50,7 +51,7 @@ export default async function HomePage() {
           {courts.map((court, idx) => (
             <Card key={court.id}>
               <div className="grid gap-3 md:grid-cols-2 md:items-center">
-                <div className={`relative h-32 overflow-hidden rounded-2xl ${idx % 2 === 1 ? "md:order-2" : ""}`}>
+                <div className={`relative h-60 overflow-hidden rounded-2xl ${idx % 2 === 1 ? "md:order-2" : ""}`}>
                   <Image
                     src={court.image_url || "/ui-screens/02-reservar-pista.png"}
                     alt={court.name}
@@ -61,7 +62,7 @@ export default async function HomePage() {
                 <div className={idx % 2 === 1 ? "md:order-1" : ""}>
                   <h3 className="mb-1 text-lg font-black">{court.name}</h3>
                   <p className="text-sm leading-6 text-muted">
-                    {court.sport} • {court.surface} • {court.location_type} • ${Number(court.price_per_hour).toFixed(2)}/hora
+                    {court.sport} • {court.surface} • {court.location_type} • ${(Number(court.price_per_hour_cents || 0) / 100).toFixed(2)}/hora
                   </p>
                 </div>
               </div>

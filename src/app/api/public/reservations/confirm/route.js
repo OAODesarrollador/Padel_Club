@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { confirmSchema } from "@/lib/schemas";
 import { confirmReservation } from "@/lib/sql/reservations";
 import { createPayment } from "@/lib/sql/payments";
+import { getPublicClubId } from "@/lib/config/club";
 
 export async function POST(request) {
   const payload = await request.json();
@@ -10,13 +11,16 @@ export async function POST(request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
   try {
-    const reservation = await confirmReservation(parsed.data);
+    const reservation = await confirmReservation({
+      ...parsed.data,
+      club_id: getPublicClubId()
+    });
     if (reservation.payment_method === "CASH" || reservation.payment_method === "TRANSFER_EXTERNAL") {
       await createPayment({
         club_id: reservation.club_id,
         reservation_id: reservation.id,
         method: reservation.payment_method,
-        amount: reservation.total_amount,
+        amount_cents: reservation.total_amount_cents,
         status: "PENDING"
       });
     }

@@ -1,14 +1,14 @@
 import { writeMessageLog } from "@/lib/sql/audit";
+import { formatInClubTimeZone } from "@/lib/datetime";
 
 function cleanPhone(phone) {
   return String(phone || "").replace(/\D/g, "");
 }
 
 function formatDateTime(iso) {
-  const date = new Date(iso);
   return {
-    fecha: date.toLocaleDateString("es-AR"),
-    hora: date.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
+    fecha: formatInClubTimeZone(iso, { dateStyle: "short" }),
+    hora: formatInClubTimeZone(iso, { hour: "2-digit", minute: "2-digit" })
   };
 }
 
