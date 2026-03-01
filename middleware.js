@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
-import { verifyStaffToken } from "@/lib/security/jwt";
-import { shouldUseSecureCookies } from "@/lib/security/auth";
+import { verifyStaffToken } from "./src/lib/security/jwt";
+
+function shouldUseSecureCookies(request) {
+  const forwarded = request?.headers?.get?.("x-forwarded-proto");
+  if (forwarded) return forwarded.split(",")[0].trim() === "https";
+  try {
+    return new URL(request?.url || "").protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;

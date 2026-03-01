@@ -30,6 +30,7 @@
   --bs-link-color: var(--brand-primary);
   --bs-link-hover-color: var(--brand-primary-700);
   --bs-focus-ring-color: var(--focus);
+  --radius-surface: 1rem;
 }
 
 body {
@@ -58,7 +59,7 @@ a:hover {
 .surface-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: var(--radius-surface);
   box-shadow: 0 8px 20px rgba(30, 58, 138, 0.06);
 }
 
@@ -226,7 +227,7 @@ a:hover {
   gap: 0.2rem;
   padding: 0.7rem 0.4rem;
   border: 2px solid var(--border);
-  border-radius: 1rem;
+  border-radius: 1.5rem;
   background: var(--surface);
   color: var(--text);
   font-size: 0.75rem;
@@ -386,11 +387,13 @@ a:hover {
 }
 
 .home-cta-btn {
-  font-size: 1.15rem;
+  font-size: 1.5rem !important;
+  line-height: 1.05 !important;
   font-weight: 900;
-  letter-spacing: 0.01em;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.28);
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 12px rgba(255, 255, 255, 0.38);
   min-height: 3.3rem;
+  border-radius: var(--radius-surface) !important;
   background: var(--brand-accent) !important;
   border-color: var(--brand-accent) !important;
   color: #fff !important;
